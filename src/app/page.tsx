@@ -1,103 +1,143 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
 import Image from "next/image";
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+// Unsplash images for the domino effect
+const images = [
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop"
+];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+interface DominoCardProps {
+  image: string;
+  index: number;
+  totalCards: number;
+  scrollYProgress: MotionValue<number>;
+}
+
+function DominoCard({ image, index, totalCards, scrollYProgress }: DominoCardProps) {
+  // Create a more precise scroll range for each card
+  const start = index / totalCards;
+  const end = (index + 1) / totalCards;
+
+  const cardProgress = useTransform(
+    scrollYProgress,
+    [start, end],
+    [0, 1]
+  );
+
+  // Show card with overlap - next card visible while current card falling
+  const opacity = useTransform(cardProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const rotateX = useTransform(cardProgress, [0, 1], [0, -90]);
+  const scale = useTransform(cardProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
+  const y = useTransform(cardProgress, [0, 0.5, 1], [50, 0, -50]);
+
+  return (
+    <motion.div
+      className="absolute inset-0 w-full h-full"
+      style={{
+        rotateX,
+        opacity,
+        scale,
+        y,
+        transformStyle: "preserve-3d",
+        transformOrigin: "bottom center",
+      }}
+    >
+      <div className="relative w-full h-full rounded-lg overflow-hidden shadow-2xl">
+        <Image
+          src={image}
+          alt={`Domino card ${index + 1}`}
+          fill
+          className="object-cover"
+          priority={index === 0}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
+    </motion.div>
+  );
+}
+
+export default function Home() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+
+  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
+  const smoothScrollYProgress = useSpring(scrollYProgress, springConfig);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div
+        ref={containerRef}
+        className="relative h-[500vh]" // Extended height for scroll effect
+      >
+        {/* Hero Section */}
+        <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-black/20" />
+
+          {/* 3D Perspective Container */}
+          <div className="relative w-full max-w-4xl mx-auto px-4">
+            <div className="relative h-[600px] [perspective:1000px]">
+              <div className="relative w-full h-full [transform-style:preserve-3d]">
+                {images.map((image, index) => (
+                  <DominoCard
+                    key={index}
+                    image={image}
+                    index={index}
+                    totalCards={images.length}
+                    scrollYProgress={smoothScrollYProgress}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Scroll Indicator */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse" />
+            </div>
+          </motion.div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Content Sections */}
+        <div className="relative z-10">
+          {images.map((_, index) => (
+            <div key={index} className="h-screen flex items-center justify-center">
+              <div className="text-center text-white">
+                <motion.h2
+                  className="text-4xl font-bold mb-4"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  Section {index + 1}
+                </motion.h2>
+                <motion.p
+                  className="text-xl text-white/80 max-w-2xl"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  This is section {index + 1} content. Scroll to see the domino effect in action!
+                </motion.p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
