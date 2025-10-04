@@ -31,11 +31,23 @@ function DominoCard({ image, index, totalCards, scrollYProgress }: DominoCardPro
     [0, 1]
   );
 
-  // Show card with overlap - next card visible while current card falling
-  const opacity = useTransform(cardProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  // Card stays visible at 1 until it starts falling, then fades out
+  const opacity = useTransform(cardProgress, [0, 0.1, 0.9, 1], [1, 1, 1, 0]);
+  
+  // Rotate from 0 to -90 degrees (falling forward)
   const rotateX = useTransform(cardProgress, [0, 1], [0, -90]);
-  const scale = useTransform(cardProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
-  const y = useTransform(cardProgress, [0, 0.5, 1], [50, 0, -50]);
+  
+  // Keep scale constant for deck effect
+  const scale = useTransform(cardProgress, [0, 1], [1, 1]);
+  
+  // Cards start stacked with slight offset, then fall
+  const y = useTransform(cardProgress, [0, 1], [0, -50]);
+  
+  // Z-index to ensure proper stacking - higher index = on top
+  const zIndex = totalCards - index;
+  
+  // Initial stacking offset for deck appearance
+  const initialOffset = index * 4; // 4px offset per card
 
   return (
     <motion.div
@@ -45,11 +57,14 @@ function DominoCard({ image, index, totalCards, scrollYProgress }: DominoCardPro
         opacity,
         scale,
         y,
+        zIndex,
+        top: `${initialOffset}px`,
         transformStyle: "preserve-3d",
         transformOrigin: "bottom center",
+        filter: `drop-shadow(0 ${20 + index * 5}px ${30 + index * 10}px rgba(0, 0, 0, 0.3))`,
       }}
     >
-      <div className="relative w-full h-full rounded-lg overflow-hidden shadow-2xl">
+      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.4)] border border-gray-200/20">
         <Image
           src={image}
           alt={`Domino card ${index + 1}`}
@@ -74,14 +89,14 @@ export default function Home() {
   const smoothScrollYProgress = useSpring(scrollYProgress, springConfig);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       <div
         ref={containerRef}
         className="relative h-[500vh]" // Extended height for scroll effect
       >
         {/* Hero Section */}
         <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-100/50 to-white/30" />
 
           {/* 3D Perspective Container */}
           <div className="relative w-full max-w-4xl mx-auto px-4">
@@ -106,8 +121,8 @@ export default function Home() {
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse" />
+            <div className="w-6 h-10 border-2 border-gray-400/50 rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-gray-600/70 rounded-full mt-2 animate-pulse" />
             </div>
           </motion.div>
         </div>
@@ -116,9 +131,9 @@ export default function Home() {
         <div className="relative z-10">
           {images.map((_, index) => (
             <div key={index} className="h-screen flex items-center justify-center">
-              <div className="text-center text-white">
+              <div className="text-center text-gray-800">
                 <motion.h2
-                  className="text-4xl font-bold mb-4"
+                  className="text-4xl font-bold mb-4 text-gray-900"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
@@ -126,7 +141,7 @@ export default function Home() {
                   Section {index + 1}
                 </motion.h2>
                 <motion.p
-                  className="text-xl text-white/80 max-w-2xl"
+                  className="text-xl text-gray-700 max-w-2xl mx-auto"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
