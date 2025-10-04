@@ -98,6 +98,13 @@ export default function Home() {
         <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-gray-100/50 to-white/30" />
 
+          {/* Hero Text */}
+          <div className="absolute top-20 left-0 right-0 text-center z-20">
+            <h1 className="text-6xl font-bold text-gray-900">
+              Domino Effect
+            </h1>
+          </div>
+
           {/* 3D Perspective Container */}
           <div className="relative w-full max-w-4xl mx-auto px-4">
             <div className="relative h-[600px] [perspective:1000px]">
@@ -125,32 +132,6 @@ export default function Home() {
               <div className="w-1 h-3 bg-gray-600/70 rounded-full mt-2 animate-pulse" />
             </div>
           </motion.div>
-        </div>
-
-        {/* Content Sections */}
-        <div className="relative z-10">
-          {images.map((_, index) => (
-            <div key={index} className="h-screen flex items-center justify-center">
-              <div className="text-center text-gray-800">
-                <motion.h2
-                  className="text-4xl font-bold mb-4 text-gray-900"
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8 }}
-                >
-                  Section {index + 1}
-                </motion.h2>
-                <motion.p
-                  className="text-xl text-gray-700 max-w-2xl mx-auto"
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                  This is section {index + 1} content. Scroll to see the domino effect in action!
-                </motion.p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
