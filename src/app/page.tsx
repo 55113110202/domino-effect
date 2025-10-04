@@ -34,20 +34,20 @@ function DominoCard({ image, index, totalCards, scrollYProgress }: DominoCardPro
   // Card stays visible at 1 until it starts falling, then fades out
   const opacity = useTransform(cardProgress, [0, 0.1, 0.9, 1], [1, 1, 1, 0]);
   
-  // Rotate from 0 to -90 degrees (falling forward)
-  const rotateX = useTransform(cardProgress, [0, 1], [0, -90]);
+  // Rotate from 0 to 90 degrees (falling backward towards the next card)
+  const rotateX = useTransform(cardProgress, [0, 1], [0, 90]);
   
   // Keep scale constant for deck effect
   const scale = useTransform(cardProgress, [0, 1], [1, 1]);
   
-  // Cards start stacked with slight offset, then fall
-  const y = useTransform(cardProgress, [0, 1], [0, -50]);
+  // Cards slide down as they rotate - positive value to slide down
+  const y = useTransform(cardProgress, [0, 1], [0, 200]);
   
   // Z-index to ensure proper stacking - higher index = on top
   const zIndex = totalCards - index;
   
-  // Initial stacking offset for deck appearance
-  const initialOffset = index * 4; // 4px offset per card
+  // Initial stacking offset for deck appearance - using negative to stack downward
+  const initialOffset = -index * 4; // Negative offset to stack cards below each other
 
   return (
     <motion.div
@@ -60,7 +60,7 @@ function DominoCard({ image, index, totalCards, scrollYProgress }: DominoCardPro
         zIndex,
         top: `${initialOffset}px`,
         transformStyle: "preserve-3d",
-        transformOrigin: "bottom center",
+        transformOrigin: "top center",
         filter: `drop-shadow(0 ${20 + index * 5}px ${30 + index * 10}px rgba(0, 0, 0, 0.3))`,
       }}
     >
